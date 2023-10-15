@@ -5,6 +5,7 @@ import com.example.fileuploadexample.domain.Item;
 import com.example.fileuploadexample.domain.ItemRepository;
 import com.example.fileuploadexample.domain.UploadFile;
 import com.example.fileuploadexample.file.FileStore;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
@@ -36,15 +37,19 @@ public class ItemController {
 
 
     @PostMapping("/items/new")
-    public String saveItem(@ModelAttribute ItemForm form, RedirectAttributes redirectAttributes) throws IOException {
+    public String saveItem(@ModelAttribute ItemForm form, RedirectAttributes redirectAttributes,
+                           HttpServletRequest request) throws IOException {
+
         UploadFile attachFile = fileStore.storeFile(form.getAttachFile());
         List<UploadFile> storeImageFiles = fileStore.storeFiles(form.getImageFiles());
-
+        String myIp = request.getRemoteAddr();
+        log.info("myIp = {}", myIp);
         //db 저장
         Item item = new Item();
         item.setItemName(form.getItemName());
         item.setAttachFile(attachFile);
         item.setImageFiles(storeImageFiles);
+        item.setMyIp(myIp);
         itemRepository.save(item);
         redirectAttributes.addAttribute("itemId", item.getId());
 
